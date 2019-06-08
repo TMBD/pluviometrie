@@ -1,9 +1,4 @@
 <DOCTYPE html>
-
-    <!-- <script src="js/leaflet.js">
-        // insertion bibliothèque Leaflet : http://leafletjs.com/
-    </script> -->
-
     <html>
 
     <head>
@@ -15,42 +10,85 @@
     </head>
 
     <body onload="load_data();">
-        <!-- Récupération des données lors du chargement de la page -->
 
-        <h1>Pluviométrie du Grand Lyon</h1>
+        <div id="container">
+            <div id="map_desc_station">
+                <div id="map">
+                    <!-- Zone pour l'insertion de la carte OSM via Leaflet -->
+                </div>
+                <div id="desc_station">
 
-        <div id="map">
-            <!-- Zone pour l'insertion de la carte OSM via Leaflet -->
-        </div>
-
-        <div id="formulaire_et_description">
-
-            <div id="description" title="Description de la station sélectionnée">
-                <!-- Zone pour l'affichage dynamique des descriptions -->
-            </div>
-
-            <div id="formulaire">
-                <form name="formulaire">
-
+                    <div id="description" title="Description de la station sélectionnée">
+                        <!-- Zone pour l'affichage dynamique des descriptions -->
+                    </div>
                     <fieldset id="field_station">
                         <legend class="h3">STATION :</legend>
                         Sélectionnez une station :
                         <label>
-                                <select id="select_station" name="select_station" size="1">
-                                    <!-- Zone pour l'insersion de la liste des stations -->
-                                </select>
-                            </label>
+                            <select id="select_station" name="select_station" size="1">
+                                <!-- Zone pour l'insersion de la liste des stations -->
+                            </select>
+                        </label>
                     </fieldset>
 
+                    <!-- en div  id="desc_station" -->
+                </div>
 
-                    <fieldset id="field_echelle">
-                        <legend class="h3">ECHELLE :</legend>
-                        <label>Pas de temps :
+                <!-- en div  id="map_desc_station" -->
+            </div>
+            <div id="parms_graphs_container">
+                <div id="parms_graphs">
+                    <form name="formulaire">
+                        <fieldset id="field_debut">
+                            <legend class="h3">DATE DE DEBUT :</legend>
+                            <label>Date : 
+                            <input class="caseDate" type="text" 
+                                id="date_debut" name="date_debut" 
+                                size="10" maxlength="10" 
+                                placeholder="jj-mm-aaaa" 
+                                value="02-01-2011" title="Date de début au format JJ-MM-AAAA">
+                        </label>
+                            <br>
+                            <label>Heure : 
+                            <input class="caseHeure" type="text" 
+                                id="heure_debut" name="heure_debut" 
+                                size="5" maxlength="5" 
+                                placeholder="hh:mm" 
+                                value="00:00" title="Heure de début au format HH:MM">
+                        </label>
+                            <br>
+                        </fieldset>
+
+
+                        <fieldset id="field_fin">
+                            <legend class="h3">DATE DE FIN :</legend>
+                            <label>Date : 
+                            <input class="caseDate" type="text" 
+                                id="date_fin" name="date_fin" 
+                                size="10" maxlength="10" 
+                                placeholder="jj-mm-aaaa" 
+                                value="30-10-2016" title="Date de fin au format JJ-MM-AAAA">
+                        </label>
+                            <br>
+                            <label>Heure : 
+                            <input class="caseHeure" type="text" 
+                                id="heure_fin" name="heure_fin" 
+                                size="5" maxlength="5" 
+                                placeholder="hh:mm" 
+                                value="23:59" title="Heure de fin au format HH:MM">
+                        </label>
+                            <br>
+                        </fieldset>
+
+
+                        <fieldset id="field_echelle">
+                            <legend class="h3">ECHELLE :</legend>
+                            <label>Pas de temps :
                                 <input class="casePas" type="text" 
                                     id="valeur_pas" name="valeur_pas" 
                                     size="3" maxlength="3" 
                                     value="6" title="Nombre d'unitées définissant le pas de temps pour le tracé du graphe de pluviométrie">
-    
+        
                                 <select class="selecteurPas" id="unite_pas" name="unite_pas" size="1" title="Unité de temps">
                                     <option value="43800">Mois</option>
                                     <option value="1440">Jours</option>
@@ -58,95 +96,74 @@
                                     <option value="1" selected>Minutes</option>
                                 </select>
                             </label>
-                    </fieldset>
+                            <br>
+                            <br>
+                        </fieldset>
 
+                        <!-- end div  id="parms_graphs" -->
+                    </form>
+                </div>
 
-
-                    <fieldset id="field_debut">
-                        <legend class="h3">DATE DE DEBUT :</legend>
-                        <label>Date : 
-                                <input class="caseDate" type="text" 
-                                    id="date_debut" name="date_debut" 
-                                    size="10" maxlength="10" 
-                                    placeholder="jj-mm-aaaa" 
-                                    value="02-01-2011" title="Date de début au format JJ-MM-AAAA">
-                            </label>
-                        <br>
-                        <label>Heure : 
-                                <input class="caseHeure" type="text" 
-                                    id="heure_debut" name="heure_debut" 
-                                    size="5" maxlength="5" 
-                                    placeholder="hh:mm" 
-                                    value="00:00" title="Heure de début au format HH:MM">
-                            </label>
-                        <br>
-                    </fieldset>
-
-
-                    <fieldset id="field_fin">
-                        <legend class="h3">DATE DE FIN :</legend>
-                        <label>Date : 
-                                <input class="caseDate" type="text" 
-                                    id="date_fin" name="date_fin" 
-                                    size="10" maxlength="10" 
-                                    placeholder="jj-mm-aaaa" 
-                                    value="30-10-2016" title="Date de fin au format JJ-MM-AAAA">
-                            </label>
-                        <br>
-                        <label>Heure : 
-                                <input class="caseHeure" type="text" 
-                                    id="heure_fin" name="heure_fin" 
-                                    size="5" maxlength="5" 
-                                    placeholder="hh:mm" 
-                                    value="23:59" title="Heure de fin au format HH:MM">
-                            </label>
-                        <br>
-                    </fieldset>
-
+                <div id="parms_graphs_button">
                     <input id="boutonAfficher" type="button" class="button buttonShow" value="Afficher" onclick="AfficherGraphe();" title="Afficher le graphe de pluviométrie">
                     <input id="boutonReset" type="button" class="button buttonReset" value="Reset" onclick="ResetFormulaire();" title="Remettre les valeurs par défaut">
-                </form>
-            </div>
-        </div>
-
-        <p id="sautligne"></p>
-
-        <div id="graphedescription">
-            <div id="graphe">
-                <!-- Zone pour l'affichage dynamique d'un graphique -->
-                <img id="graphique" src="graphes/1_02_01_2011_00_00_30_10_2016_23_59_6.png" alt="Graphe de pluviométrie de la station" title="Graphe de pluviométrie de la station sélectionnée">
+                </div>
+                <!-- end div  id="parms_graphs_container" -->
             </div>
 
-            <div id="informations">
-                <!-- Zone pour l'affichage dynamique des informations complémentaires -->
-                <table>
-                    <tr>
-                        <th>Donnée de pluviométrie</th>
-                        <th>Valeur</th>
-                    </tr>
-                    <tr>
-                        <td>Moyenne annuelle</td>
-                        <td id="pluvio_moyenne">--mm</td>
-                    </tr>
-                    <tr>
-                        <td>Maxima</td>
-                        <td id="pluvio_max">--mm</td>
-                    </tr>
-                    <tr>
-                        <td>Minima</td>
-                        <td id="pluvio_min">--mm</td>
-                    </tr>
-                    <tr>
-                        <td>Écart-type</td>
-                        <td id="pluvio_ecart_type">--</td>
-                    </tr>
-                </table>
+            <div id="graphs_desc_container">
 
+
+                <div id="graphedescription">
+                    <div id="graphe_image_container">
+                        <!-- Zone pour l'affichage dynamique d'un graphique -->
+                        <img id="graphique_img" src="./img/graphs/1_02_01_2011_00_00_02_03_2011_23_59_43200.png" alt="Graphe de pluviométrie de la station" title="Graphe de pluviométrie de la station sélectionnée">
+                    </div>
+
+                    <div id="graphe_infos">
+                        <!-- Zone pour l'affichage dynamique des informations complémentaires -->
+                        <table>
+                            <tr>
+                                <th>Paramètre</th>
+                                <th>Valeur</th>
+                            </tr>
+                            <tr>
+                                <td>Moyenne annuelle</td>
+                                <td id="pluvio_moyenne">--mm</td>
+                            </tr>
+                            <tr>
+                                <td>Maxima</td>
+                                <td id="pluvio_max">--mm</td>
+                            </tr>
+                            <tr>
+                                <td>Minima</td>
+                                <td id="pluvio_min">--mm</td>
+                            </tr>
+                            <tr>
+                                <td>Écart-type</td>
+                                <td id="pluvio_ecart_type">--</td>
+                            </tr>
+                        </table>
+
+                    </div>
+                    <!-- end div  id="graphedescription" -->
+                </div>
+
+
+
+
+
+                <!-- end div  id="graphs_desc_container" -->
             </div>
+
+
+
+            <!-- end div  id="container" -->
         </div>
 
         <footer>
-            <b/> Créé en janvier 2016 par Laura Cordebart, Estelle de Cremoux, Louise Dournon, Amaury Guerbois et Pierre Gras
+            <br/> <b> Créé en juin par Thierno DIALLO, SIDI, Luisa LIMA, Zhou XIN</b>
+            <br/> <b> copyright 2019 </b>
         </footer>
     </body>
 
@@ -166,6 +183,7 @@
 
         var markers = new Array(); // Création de la liste des marqueurs positionnant les stations
 
+        var selecteur = document.getElementById("select_station"); // Récupération de l'emplacement de la liste déroulante
 
         function load_data() {
             var xhr = new XMLHttpRequest();
@@ -174,6 +192,7 @@
                 // Récupération des données renvoyées par le serveur
                 var data = JSON.parse(this.responseText);
 
+                //var selecteur = document.getElementById("select_station"); // Récupération de l'emplacement de la liste déroulante
                 // Boucle parcourant les enregistrements renvoyés par le serveur
                 for (n = 0; n < data.length; n++) {
 
@@ -209,13 +228,17 @@
                     }
 
                     // Ajout des stations à la liste déroulante des stations (cf. formulaire)
-                    var selecteur = document.getElementById("select_station"); // Récupération de l'emplacement de la liste déroulante
+                    //var selecteur = document.getElementById("select_station"); // Récupération de l'emplacement de la liste déroulante
                     var option = document.createElement("option"); // Création d'une nouvelle option
-                    option.text = data[n].gid + '- ' + data[n].nom; // Ajout d'un texte à l'option (ex : "1- SAINT GERMAIN")
+                    option.text = data[n].gid + ' - ' + data[n].nom; // Ajout d'un texte à l'option (ex : "1 - SAINT GERMAIN")
                     option.setAttribute("onclick", "SelectionStation(" + data[n].gid + ");"); // Ajout d'un évènement (clic sur option)
                     selecteur.add(option, selecteur[-1]); // Ajout de l'option à la suite des précédentes
+
                 }
+
+                selecteur.setAttribute("onclick", "SelectionStationE(event);"); // Ajout d'un évènement (clic sur option)
             };
+            //Envoi de la requete XHR
             xhr.open('GET', '/location', true);
             xhr.send();
         }
@@ -233,13 +256,32 @@
             description.innerHTML = markers[i].infos[2];
         }
 
+        function SelectionStationE(e) {
+            valeur_gid = e.target.value.split(" - ")[0];
+            //console.log("SelectionStation -> " + e.target.value.split(" - ")[0]);
+            // Parcours de la liste des marqueurs
+            for (i = 0; i < markers.length; i++) {
+                if (i + 1 == valeur_gid) {
+                    markers[i].openPopup(); // Ouverture de la popup associée
+                    //console.log(i + " = i");
+                    break; // On sort de la boucle
+                }
+            }
+            // Remplacement du contenu de la balise <p id="description"> par le contenu de la popup
+            description.innerHTML = markers[i].infos[2];
+        }
 
+
+        //Fonction appelée lors du clique sur une station (dans la carte) pour mettre à jour la liste déroulante
+        //et la description de la station (seul ces deux éléments changent dans ce cas)
         function OnMarkerClick(e) {
             // Sélection de la station (sur laquelle on a cliqué) dans la liste déroulante du formulaire
             document.getElementById("select_station").options.selectedIndex = e.target.infos[0] - 1;
 
             description.innerHTML = e.target.infos[2];
         }
+
+        ////////////////////// CALCULE DES GRAPHS ///////////////////////////////
 
 
         function AfficherGraphe() {
@@ -255,7 +297,8 @@
 
             // Si les valeurs sont correctes : on récupère les variables et on affiche le graphique
             var myForm = document.forms["formulaire"]
-            var nom_station = myForm["select_station"].value;
+                //var nom_station = myForm["select_station"].value;
+            var nom_station = document.getElementById("select_station").value.split(" - ")[0];
             var datedeb = myForm["date_debut"].value;
             var heuredeb = myForm["heure_debut"].value;
             var datefin = myForm["date_fin"].value;
@@ -269,7 +312,8 @@
             xhr.onload = function() {
                 var data = JSON.parse(this.responseText); // Récupération des données renvoyées par le serveur
                 // Modification de l'adresse de l'image contenue dans la balise <div id="graphique"> :
-                document.getElementById("graphique").setAttribute("src", data[0].nom_image_new);
+                console.log(data[0].nom_image_new)
+                document.getElementById("graphique_img").setAttribute("src", data[0].nom_image_new);
                 document.getElementById("pluvio_min").innerHTML = data[0].mini + ' mm';
                 document.getElementById("pluvio_max").innerHTML = data[0].maxi + ' mm';
                 document.getElementById("pluvio_moyenne").innerHTML = data[0].moyenne + ' mm';
@@ -453,7 +497,7 @@
                         jour = +jour;
                         mois = +mois;
                         annee = +annee;
-                        if (jour != 0 && mois != 0 && mois < 13) {
+                        if (jour > 0 && mois > 0 && mois < 13) {
                             if (mois == 2) {
                                 // ie. mois de février
                                 if ((annee % 4 == 0 && annee % 400 != 0) || annee % 100 == 0) {

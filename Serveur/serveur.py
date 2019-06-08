@@ -21,12 +21,21 @@ from statistics import mean, variance
 import os
 from decimal import Decimal
 
+GRAPH_IMAGE_DIR = 'Client/img/graphs/'
+GRAPH_IMAGE_DIR_CLIENT = 'img/graphs/'
+IMG_EXTENSION = '.png'
+PLUVIO_DB_NAME = "../DB/pluvio.sqlite"
+GRAPHS_DB_NAME = "../DB/graphes.sqlite"
+#PAGES_DIR_NAME = "../Client"
+#graph_image_dir = '../Client/img/graphs/'
+#img_extension = '.png'
+
 
 # Définition du handler
 class RequestHandler(http.server.SimpleHTTPRequestHandler) :
 
-    static_dir = '/client' # Sous-répertoire racine des documents statiques
-    
+    #static_dir = '/client' # Sous-répertoire racine des documents statiques
+    PAGES_DIR_NAME = "Client"
     server_version = 'serveur.py/0.6' # version du serveur
 
     # Surcharge de la méthode traitant les requêtes GET :
@@ -38,7 +47,7 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler) :
             data = [] # Liste des données à transmettre à la page WEB
             
             # Connexion à la base de données :
-            conn = sqlite3.connect('pluvio.sqlite')
+            conn = sqlite3.connect(PLUVIO_DB_NAME)
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
 
@@ -71,24 +80,27 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler) :
             nom_image_new = "_".join(parametres) # Création du nom de l'image
             
             # Connexion à la base de données :
-            conn = sqlite3.connect('graphes.sqlite')
+            conn = sqlite3.connect(GRAPHS_DB_NAME)
             c = conn.cursor()
             # Envoi de la requête :
             c.execute('''SELECT nom_image FROM graphes WHERE nom_image = "''' + str(nom_image_new) + '''"''')
             a = c.fetchall() # Tableau contenant les réponses à la requête
 
-            nom_complet = 'client/graphes/' + nom_image_new + '.png'
+            nom_complet = GRAPH_IMAGE_DIR + nom_image_new + IMG_EXTENSION
             
             if not (len(a)>0 and os.path.isfile(nom_complet)) : # ie. aucune image ne correspond => construction du graphe
 
                 # Connexion à la base de données
-                conn = sqlite3.connect('pluvio.sqlite')
+                conn = sqlite3.connect(PLUVIO_DB_NAME)
                 conn.row_factory = sqlite3.Row
                 c = conn.cursor()
                 
                 # Récupération de l'identifiant de la station :
                 r = c.execute('''SELECT identifiant, gid FROM stations WHERE gid="''' + gid + '''"''')
-                identifiant = r.fetchall()[0]['identifiant']
+                #identifiant = r.fetchall()[0]['identifiant']
+                result = r.fetchall()
+                identifiant = result[0]['identifiant']
+                nomStation =result[0]['nom']
                 
                 # Récupération des données de pluviométrie :
                 texte_sta = 'sta_' + str(identifiant)
@@ -121,7 +133,7 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler) :
                             val = float(val)
                         D.append(date)
                         Y.append(val)
-                
+ #//////////////////////////// A regarder //////////////////////////////////////:               
                 
                 # Conversion des dates pour matplotlib :
                 fds = [] 
@@ -131,7 +143,8 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler) :
                 
                 ########## AFFICHAGE GRAPHE #################################################################
                 
-                fig = plt.figure(figsize=(12,6), dpi=100)
+                #fig = plt.figure(figsize=(12,6), dpi=100)
+                fig = plt.figure(figsize=(8.64,4.32), dpi=100)
                 ax = fig.add_subplot(111)
                 
                 ## ===== Gestion des graduations ================================================
@@ -247,7 +260,7 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler) :
                 plt.fill_between(fds_tronc, Y_tronc, 0, color='#0055ff')
                 plt.xlim([date_min, date_max]) # Définition des limites temporelles du graphique
                 plt.ylabel("Précipitations en mm") # Ajout du nom des axes
-                plt.title("Pluviométrie du " + datedeb + ' ' + heuredeb + " au " + datefin + ' ' + heurefin +'\n Station n°' + gid)
+                plt.title('Station : ' + nomStation + "\nPluviométrie du " + datedeb + ' à ' + heuredeb + " au " + datefin + ' à ' + heurefin)
                 plt.subplots_adjust(bottom=0.3)
                 
                 ax.xaxis.set_major_formatter(hfmt) # Format d'affichage des graduations
@@ -274,12 +287,12 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler) :
             
                 row = [nom_image_new, mini, maxi, moyenne, ecart_type]
                 
-                conn = sqlite3.connect('graphes.sqlite')
+                conn = sqlite3.connect(GRAPHS_DB_NAME)
                 c = conn.cursor()
                 c.execute('INSERT INTO graphes VALUES (?, ?, ?, ?, ?)', tuple(v for v in row))
                 conn.commit()                
             
-            else :
+            else :  #C'est à dire le graphe existe déja
                 c.execute('''SELECT mini, maxi, moyenne, ecart_type FROM graphes WHERE nom_image = "''' + str(nom_image_new) + '''"''')
                 a = c.fetchall()
                 print(a)
@@ -295,7 +308,7 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler) :
                     ecart_type = 'N/A'
                 
             # Nom complet d'accès à l'image (vu depuis la page HTML) :
-            nom_image_new = 'graphes/'+ nom_image_new + '.png'
+            nom_image_new = GRAPH_IMAGE_DIR_CLIENT + nom_image_new + IMG_EXTENSION
                 
             # Envoi de l'adresse de l'image à la page WEB, au format JSON :
             self.send_json([{"nom_image_new":nom_image_new, "mini":mini, "maxi":maxi, "moyenne":moyenne, "ecart_type":ecart_type}])
@@ -336,8 +349,11 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler) :
     def send_static(self) :
 
         # On modifie le chemin d'accès en insérant le répertoire préfixe :
-        self.path = self.static_dir + self.path
-
+        self.path = self.PAGES_DIR_NAME + self.path
+        print("self.PAGES_DIR_NAME : ")
+        print(self.PAGES_DIR_NAME)
+        print("self.path : ")
+        print(self.path)
         # On calcule le nom de la méthode parent à appeler (do_GET ou do_HEAD)
         #  à partir du verbe HTTP (GET ou HEAD) :
         method = 'do_{}'.format(self.command)
@@ -403,5 +419,5 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler) :
 
 
 # Instanciation et lancement du serveur :
-httpd = socketserver.TCPServer(("", 8081), RequestHandler)
+httpd = socketserver.TCPServer(("", 8083), RequestHandler)
 httpd.serve_forever()
