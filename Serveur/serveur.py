@@ -96,7 +96,7 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler) :
                 c = conn.cursor()
                 
                 # Récupération de l'identifiant de la station :
-                r = c.execute('''SELECT identifiant, gid FROM stations WHERE gid="''' + gid + '''"''')
+                r = c.execute('''SELECT identifiant, gid, nom FROM stations WHERE gid="''' + gid + '''"''')
                 #identifiant = r.fetchall()[0]['identifiant']
                 result = r.fetchall()
                 identifiant = result[0]['identifiant']

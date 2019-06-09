@@ -1,13 +1,13 @@
 /* =========== Body & Arrière-plan =========== */
 
 body {
-    background-color: #f0f0ea;
+    /* background-color: #f0f0ea; */
     font-family: 'Trebuchet MS';
     padding: 2em;
-    background-image: url(../img/lyon.png);
-    background-repeat: no-repeat;
+    /* background-image: url(../img/lyon.png); */
+    /* background-repeat: no-repeat;
     background-position: 0, 0;
-    background-size: cover;
+    background-size: cover; */
     height: 1000p;
 }
 
@@ -23,7 +23,7 @@ h1 {
     font-size: 300%;
     font-weight: bold;
     letter-spacing: 0.1em;
-    color: gold;
+    color: rgb(2, 59, 218);
     text-align: center;
 }
 
@@ -35,7 +35,7 @@ h1 {
     width: 100%;
     max-width: calc( 100% - 54em);
     height: 42.5em;
-    border: 3px black solid;
+    border: 1px black solid;
     /**/
     border-radius: 10px/10px;
     box-shadow: 3px 3px 5px black;
@@ -70,7 +70,7 @@ h1 {
 #description {
     background-color: rgba(0, 0, 0, 0.15);
     font: Lucida Sans Unicode;
-    border: 3px black solid;
+    border: 1px black solid;
     border-radius: 10px/10px;
     box-shadow: 3px 3px 5px black;
     padding-left: 5px;
@@ -108,7 +108,7 @@ h1 {
     /* width: calc( 100% - 34.5em); */
     margin: auto;
     background-color: white;
-    border: 3px black solid;
+    border: 1px black solid;
     border-radius: 10px/10px;
     box-shadow: 3px 3px 5px black;
     padding-top: 40px;
@@ -147,7 +147,7 @@ h1 {
 
 fieldset {
     width: calc( 17em - 6px);
-    border: 3px black solid;
+    border: 1px black solid;
     border-radius: 10px/10px;
     box-shadow: 3px 3px 5px black;
     background-color: rgba(0, 0, 0, 0.15);

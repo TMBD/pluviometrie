@@ -18,8 +18,8 @@ c = conn.cursor()
 print("Création de la base de données 'stations' ...")
 c.execute('''DROP TABLE IF EXISTS stations''')
 c.execute('''CREATE TABLE stations       \
-              ( longitude REAL,                         \
-                latitude REAL,                         \
+              ( latitude REAL,                         \
+                longitude REAL,                         \
                 nom TEXT,                       \
                 adresse TEXT,                   \
                 proprietaires TEXT,               \

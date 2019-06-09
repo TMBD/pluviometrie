@@ -10,7 +10,7 @@
     </head>
 
     <body onload="load_data();">
-
+        <h1>Pluviométrie du Grand Lyon</h1>
         <div id="container">
             <div id="map_desc_station">
                 <div id="map">
@@ -117,7 +117,7 @@
                 <div id="graphedescription">
                     <div id="graphe_image_container">
                         <!-- Zone pour l'affichage dynamique d'un graphique -->
-                        <img id="graphique_img" src="./img/graphs/1_02_01_2011_00_00_02_03_2011_23_59_43200.png" alt="Graphe de pluviométrie de la station" title="Graphe de pluviométrie de la station sélectionnée">
+                        <img id="graphique_img" src="./img/graphs/1_02_01_2011_00_00_30_10_2016_23_59_6.png" alt="Graphe de pluviométrie de la station" title="Graphe de pluviométrie de la station sélectionnée">
                     </div>
 
                     <div id="graphe_infos">
@@ -283,6 +283,12 @@
 
         ////////////////////// CALCULE DES GRAPHS ///////////////////////////////
 
+        //on rend les champs rouges lorsqu'ils ne sont pas bien saisi
+        document.getElementById("date_debut").onkeyup = VerificationDateDebut;
+        document.getElementById("date_fin").onkeyup = VerificationDateFin;
+        document.getElementById("heure_debut").onkeyup = VerificationHeureDebut;
+        document.getElementById("heure_fin").onkeyup = VerificationHeureFin;
+        document.getElementById("valeur_pas").onkeyup = VerificationValeurPas;
 
         function AfficherGraphe() {
             var resultat = VerificationFormulaire();
@@ -351,14 +357,6 @@
         var validerOnKeyUpAttached = false;
 
         function VerificationFormulaire() {
-            if (!validerOnKeyUpAttached) {
-                document.getElementById("date_debut").onkeyup = VerificationDateDebut;
-                document.getElementById("date_fin").onkeyup = VerificationDateFin;
-                document.getElementById("heure_debut").onkeyup = VerificationHeureDebut;
-                document.getElementById("heure_fin").onkeyup = VerificationHeureFin;
-                document.getElementById("valeur_pas").onkeyup = VerificationValeurPas;
-                validerOnKeyUpAttached = true;
-            }
             if (!VerificationOrdre()) {
                 alert("La date de début est postérieure à la date de fin");
             }
@@ -575,7 +573,7 @@
                 // ie. l'entrée ne contient que des chiffres
                 if (pastxt.length > 0) {
                     pas = +pastxt;
-                    if (pas >= 6) {
+                    if (pas >= 1) {
                         case_entree.setAttribute('class', 'casePas');
                         return true
                     }
@@ -597,7 +595,9 @@
             var heuredebtxt = myForm["heure_debut"].value; // Récupération de la valeur du champ
             var heurefintxt = myForm["heure_fin"].value; // Récupération de la valeur du champ
             var pastxt = myForm["valeur_pas"].value; // Récupération de la valeur du champ
-            pas = +pastxt;
+            var unite = myForm["unite_pas"].value;
+
+            pas = +pastxt * +unite;
             heure1 = heuredebtxt.split(':');
             heure2 = heurefintxt.split(':');
             date1 = datedebtxt.split('-');
