@@ -70,13 +70,16 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler) :
             
             # Récupération des infos contenues dans l'adresse de la requête GET :
             gid = self.path_info[1].split('-')[0] # ex: "1-%20SAINT%20GERMAIN" => gid = "1"
+            gids = gid.split('_')
             datedeb = self.path_info[2] # ex: "02-01-2011"
             heuredeb = self.path_info[3] # ex: "18:32"
             datefin = self.path_info[4]
             heurefin = self.path_info[5]
             pas_minutes = self.path_info[6]
             
-            parametres = [gid] + datedeb.split('-') + heuredeb.split(':') + datefin.split('-') + heurefin.split(':') + [pas_minutes]            
+            selected_gid = "-".join(gids)
+            
+            parametres = [selected_gid] + datedeb.split('-') + heuredeb.split(':') + datefin.split('-') + heurefin.split(':') + [pas_minutes]            
             nom_image_new = "_".join(parametres) # Création du nom de l'image
             
             # Connexion à la base de données :
@@ -96,16 +99,44 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler) :
                 c = conn.cursor()
                 
                 # Récupération de l'identifiant de la station :
-                r = c.execute('''SELECT identifiant, gid, nom FROM stations WHERE gid="''' + gid + '''"''')
-                #identifiant = r.fetchall()[0]['identifiant']
+                r = c.execute('''SELECT identifiant, gid, nom FROM stations WHERE gid="''' + gids[0] + '''"''')
                 result = r.fetchall()
                 identifiant = result[0]['identifiant']
+                identifiant2 = ""
+                identifiant3 = ""
                 nomStation =result[0]['nom']
+                nomStation2 = ""
+                if(len(gids)>1) :
+                    r2 = c.execute('''SELECT identifiant, gid, nom FROM stations WHERE gid="''' + gids[1] + '''"''')
+                    result2 = r2.fetchall()
+                    identifiant2 = result2[0]['identifiant']
+                    nomStation2 =result2[0]['nom']
+                if(len(gids)>2) :
+                    r3 = c.execute('''SELECT identifiant, gid, nom FROM stations WHERE gid="''' + gids[2] + '''"''')
+                    result3 = r3.fetchall()
+                    identifiant3 = result3[0]['identifiant']
+                    nomStation = str(nomStation)+", "+str(nomStation2)+" et "+str(result3[0]['nom'])
+                elif(len(gids)>1) : nomStation = str(nomStation)+" et "+str(nomStation2)
+                    
+                #identifiant = r.fetchall()[0]['identifiant']
+                
                 
                 # Récupération des données de pluviométrie :
                 texte_sta = 'sta_' + str(identifiant)
+                texte_sta2 = ""
+                texte_sta3 = ""
+                a2 = ""
+                a3 = ""
                 r = c.execute('SELECT date, ' + texte_sta + ' FROM histo')
-                a = r.fetchall()                
+                a = r.fetchall() 
+                if(len(gids)>1) :
+                    texte_sta2 = 'sta_' + str(identifiant2)
+                    r2 = c.execute('SELECT date, ' + texte_sta2 + ' FROM histo')
+                    a2 = r2.fetchall() 
+                if(len(gids)>2) :
+                    texte_sta3 = 'sta_' + str(identifiant3)
+                    r3 = c.execute('SELECT date, ' + texte_sta3 + ' FROM histo')
+                    a3 = r3.fetchall() 
                 
                 def creation_date(date) :
                     JJ = int(date[:2]) # Année
@@ -122,6 +153,8 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler) :
                 
                 D = [] # Liste des dates
                 Y = [] # Liste des valeurs
+                Y2 = []
+                Y3 = []
                 
                 for i in range(n) :
                     date = creation_date(a[i]['date'])
@@ -133,6 +166,22 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler) :
                             val = float(val)
                         D.append(date)
                         Y.append(val)
+                        
+                        if len(gids)>1 :
+                            val2 = a2[i][texte_sta2]
+                            if val2 == '' :
+                                val2 = 0
+                            else :
+                                val2 = float(val2)
+                            Y2.append(val2)
+                        
+                        if len(gids)>2 :
+                            val3 = a3[i][texte_sta3]
+                            if val3 == '' :
+                                val3 = 0
+                            else :
+                                val3 = float(val3)
+                            Y3.append(val3)
  #//////////////////////////// A regarder //////////////////////////////////////:               
                 
                 # Conversion des dates pour matplotlib :
@@ -234,10 +283,15 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler) :
                     if fds[i] < dates.date2num(sup_intervalle) :
                         # Le point appartient à l'intervalle étudié donc on le rajoute à la somme :
                         somme += Y[i]
+                        if len(gids)>1 : somme += Y2[i]
+                        if len(gids)>2 : somme += Y3[i]
+                            
                         i += 1
                     else :
                         # Le point n'appartient pas à l'intervalle étudié donc on passe à l'intervalle suivant :
                         n_i += 1
+                        #if len(gids)>1 : somme = somme/2
+                        #elif len(gids)>2 : somme = somme/3
                         # On trace artificiellement un graphe en barres :
                         fds_tronc.append(dates.date2num(inf_intervalle+resolution))
                         Y_tronc.append(somme)
@@ -257,10 +311,14 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler) :
                 
                 plt.plot(fds_tronc, Y_tronc)
                 
+                station = "Station"
+                
+                if len(gids)>1 : station = "Stations"
+                
                 plt.fill_between(fds_tronc, Y_tronc, 0, color='#0055ff')
                 plt.xlim([date_min, date_max]) # Définition des limites temporelles du graphique
                 plt.ylabel("Précipitations en mm") # Ajout du nom des axes
-                plt.title('Station : ' + nomStation + "\nPluviométrie du " + datedeb + ' à ' + heuredeb + " au " + datefin + ' à ' + heurefin)
+                plt.title(station+' : ' + nomStation + "\nPluviométrie du " + datedeb + ' à ' + heuredeb + " au " + datefin + ' à ' + heurefin, fontsize=16)
                 plt.subplots_adjust(bottom=0.3)
                 
                 ax.xaxis.set_major_formatter(hfmt) # Format d'affichage des graduations

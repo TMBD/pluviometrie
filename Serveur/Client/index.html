@@ -5,6 +5,14 @@
         <title>Pluviométrie du Grand Lyon</title>
         <link rel="stylesheet" type="text/css" href="css/style.css" />
         <link rel="stylesheet" type="text/css" href="css/leaflet.css" />
+        <link rel="stylesheet" type="text/css" href="css/loading.css" />
+
+        <link rel="stylesheet" type="text/css" href="css/footer.css" />
+        <!-- <link rel="stylesheet" type="text/css" href="css/bootstrap-3.3.7-dist/css/bootstrap.css" /> -->
+        <script src="js/jquery-3.2.1.js"></script>
+        <script src="css/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+
+
         <script type="text/javascript" src="js/leaflet.js"></script>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     </head>
@@ -30,7 +38,17 @@
                             </select>
                         </label>
                     </fieldset>
-
+                    <div id="selected_stations_div">
+                        <input type="checkbox" id="croisement" name="croisement" onclick="check_croisement()" title="Si vous souhaitez tracer une courbe representant plusieurs zones">
+                        <label for="croisement">Croisement de données</label>
+                        <div id="regions_selected_div">
+                            <ul>
+                                <li id="region_selected_1">Coffee</li>
+                                <li id="region_selected_2">CHAMPAGNE AU MONT D OR</li>
+                                <li id="region_selected_3">Milk</li>
+                            </ul>
+                        </div>
+                    </div>
                     <!-- en div  id="desc_station" -->
                 </div>
 
@@ -118,6 +136,9 @@
                     <div id="graphe_image_container">
                         <!-- Zone pour l'affichage dynamique d'un graphique -->
                         <img id="graphique_img" src="./img/graphs/1_02_01_2011_00_00_30_10_2016_23_59_6.png" alt="Graphe de pluviométrie de la station" title="Graphe de pluviométrie de la station sélectionnée">
+                        <div id="loading_container">
+                            <div class="loader"></div>
+                        </div>
                     </div>
 
                     <div id="graphe_infos">
@@ -159,12 +180,24 @@
 
 
             <!-- end div  id="container" -->
-        </div>
+            <footer>
 
-        <footer>
-            <br/> <b> Créé en juin par Thierno DIALLO, SIDI, Luisa LIMA, Zhou XIN</b>
-            <br/> <b> copyright 2019 </b>
-        </footer>
+                <div id="footer_div">
+                    <section id="footer">
+                        <div>
+                            <div class="footer_sub_div">
+                                <h5>Copyright 2019</h5>
+                                <ul class="list-unstyled quick-links">
+                                    <li><a href="#"><i class="fa fa-angle-double-right"></i>Créé en juin 2019 par Thierno DIALLO, SIDI, Luisa LIMA, Zhou XIN</a></li>
+
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+            </footer>
+
     </body>
 
     </html>
@@ -173,6 +206,13 @@
 
 
     <script>
+        document.getElementById("loading_container").style.display = 'none';
+        document.getElementById("regions_selected_div").style.display = 'none';
+        document.getElementById('region_selected_1').style.display = 'none';
+        document.getElementById('region_selected_2').style.display = 'none';
+        document.getElementById('region_selected_3').style.display = 'none';
+        // document.getElementById("graphique_img").style.display = 'none';
+        // document.getElementById("loading_container").style.display = 'block';
         // Création d'une carte dans la balise <div id="map">, positionne la vue sur Lyon et définit le niveau de zoom
         var map = L.map('map').setView([45.775, 4.83], 10);
 
@@ -185,64 +225,73 @@
 
         var selecteur = document.getElementById("select_station"); // Récupération de l'emplacement de la liste déroulante
 
+        var stations_names = [];
+        var listStationsChoices = [0, 0, 0];
+
         function load_data() {
             var xhr = new XMLHttpRequest();
 
             xhr.onload = function() { // fonction callback
-                // Récupération des données renvoyées par le serveur
-                var data = JSON.parse(this.responseText);
+                if (this.status == 200) {
+                    // Récupération des données renvoyées par le serveur
+                    var data = JSON.parse(this.responseText);
 
-                //var selecteur = document.getElementById("select_station"); // Récupération de l'emplacement de la liste déroulante
-                // Boucle parcourant les enregistrements renvoyés par le serveur
-                for (n = 0; n < data.length; n++) {
-
-                    // Texte descriptif de la station
-                    var texte = '<h2> <b>Station : ' + data[n].nom + '</b> </h2>' +
-                        '<b>Adresse :</b> ' + data[n].adresse +
-                        '<br><b>Propriétaires :</b> ' + data[n].proprietaires +
-                        '<br><b>Date de mise en service :</b> ' + data[n].dateMS +
-                        '<br><b>Date de mise hors service :</b> ' + data[n].dateHS +
-                        '<br><b>Altitude :</b> ' + data[n].zsol + ' m' +
-                        '<br><b>Appartient au Grand Lyon ? :</b> ' + data[n].appartenance +
-                        '<br><b>Identifiant : </b>' + data[n].identifiant;
-
-                    // Création d'un marqueur aux coordonnées données et ajout d'un titre (s'affichant en survolant le marqueur)
-                    var LamMarker = new L.marker([data[n].longitude, data[n].latitude], {
-                        title: 'Station ' + data[n].nom
-                    });
-
-                    // Ajout au marqueur d'une popup, d'un évenement (clic sur marqueur) et d'un paramètre
-                    LamMarker.bindPopup('<h2> <b>Station : ' + data[n].nom + '</b> </h2>' +
+                    //var selecteur = document.getElementById("select_station"); // Récupération de l'emplacement de la liste déroulante
+                    // Boucle parcourant les enregistrements renvoyés par le serveur
+                    for (n = 0; n < data.length; n++) {
+                        stations_names.push(data[n].nom);
+                        // Texte descriptif de la station
+                        var texte = '<h2> <b>Station : ' + data[n].nom + '</b> </h2>' +
                             '<b>Adresse :</b> ' + data[n].adresse +
                             '<br><b>Propriétaires :</b> ' + data[n].proprietaires +
-                            '<br><b>Identifiant : </b>' + data[n].identifiant)
-                        .addEventListener('click', OnMarkerClick)
-                        .infos = [data[n].gid, data[n].identifiant, texte]; // propriété personnalisée ajouté au marqueur
+                            '<br><b>Date de mise en service :</b> ' + data[n].dateMS +
+                            '<br><b>Date de mise hors service :</b> ' + data[n].dateHS +
+                            '<br><b>Altitude :</b> ' + data[n].zsol + ' m' +
+                            '<br><b>Appartient au Grand Lyon ? :</b> ' + data[n].appartenance +
+                            '<br><b>Identifiant : </b>' + data[n].identifiant;
 
-                    markers.push(LamMarker); // Ajout du marqueur à la liste
-                    map.addLayer(markers[n]); // Création d'un layer contenant le marqueur
+                        // Création d'un marqueur aux coordonnées données et ajout d'un titre (s'affichant en survolant le marqueur)
+                        var LamMarker = new L.marker([data[n].longitude, data[n].latitude], {
+                            title: 'Station ' + data[n].nom
+                        });
 
-                    // Par défaut, sélectionne la première station dans la liste déroulante des stations (cf. formulaire)
-                    if (data[n].gid == 1) {
-                        SelectionStation(data[n].gid);
+                        // Ajout au marqueur d'une popup, d'un évenement (clic sur marqueur) et d'un paramètre
+                        LamMarker.bindPopup('<h2> <b>Station : ' + data[n].nom + '</b> </h2>' +
+                                '<b>Adresse :</b> ' + data[n].adresse +
+                                '<br><b>Propriétaires :</b> ' + data[n].proprietaires +
+                                '<br><b>Identifiant : </b>' + data[n].identifiant)
+                            .addEventListener('click', OnMarkerClick)
+                            .infos = [data[n].gid, data[n].identifiant, texte]; // propriété personnalisée ajouté au marqueur
+
+                        markers.push(LamMarker); // Ajout du marqueur à la liste
+                        map.addLayer(markers[n]); // Création d'un layer contenant le marqueur
+
+                        // Par défaut, sélectionne la première station dans la liste déroulante des stations (cf. formulaire)
+                        if (data[n].gid == 1) {
+                            SelectionStation(data[n].gid);
+                        }
+
+                        // Ajout des stations à la liste déroulante des stations (cf. formulaire)
+                        //var selecteur = document.getElementById("select_station"); // Récupération de l'emplacement de la liste déroulante
+                        var option = document.createElement("option"); // Création d'une nouvelle option
+                        option.text = data[n].gid + ' - ' + data[n].nom; // Ajout d'un texte à l'option (ex : "1 - SAINT GERMAIN")
+                        option.setAttribute("onclick", "SelectionStation(" + data[n].gid + ");"); // Ajout d'un évènement (clic sur option)
+                        selecteur.add(option, selecteur[-1]); // Ajout de l'option à la suite des précédentes
+
                     }
 
-                    // Ajout des stations à la liste déroulante des stations (cf. formulaire)
-                    //var selecteur = document.getElementById("select_station"); // Récupération de l'emplacement de la liste déroulante
-                    var option = document.createElement("option"); // Création d'une nouvelle option
-                    option.text = data[n].gid + ' - ' + data[n].nom; // Ajout d'un texte à l'option (ex : "1 - SAINT GERMAIN")
-                    option.setAttribute("onclick", "SelectionStation(" + data[n].gid + ");"); // Ajout d'un évènement (clic sur option)
-                    selecteur.add(option, selecteur[-1]); // Ajout de l'option à la suite des précédentes
+                    selecteur.setAttribute("onclick", "SelectionStationE(event);"); // Ajout d'un évènement (clic sur option)
 
+                } else {
+                    alert("Un problème inatendu est survenu, veuillez ressayer");
                 }
-
-                selecteur.setAttribute("onclick", "SelectionStationE(event);"); // Ajout d'un évènement (clic sur option)
             };
             //Envoi de la requete XHR
             xhr.open('GET', '/location', true);
             xhr.send();
         }
 
+        //console.log(stations_names);
 
         function SelectionStation(valeur_gid) {
             // Parcours de la liste des marqueurs
@@ -269,6 +318,8 @@
             }
             // Remplacement du contenu de la balise <p id="description"> par le contenu de la popup
             description.innerHTML = markers[i].infos[2];
+            console.log(valeur_gid);
+            manageSelectedItem(valeur_gid);
         }
 
 
@@ -279,6 +330,8 @@
             document.getElementById("select_station").options.selectedIndex = e.target.infos[0] - 1;
 
             description.innerHTML = e.target.infos[2];
+            console.log(e.target.infos[0]);
+            manageSelectedItem(e.target.infos[0]);
         }
 
         ////////////////////// CALCULE DES GRAPHS ///////////////////////////////
@@ -300,11 +353,21 @@
             document.getElementById("boutonAfficher").disabled = true;
             document.getElementById("boutonAfficher").value = "Chargement ...";
             document.getElementById("boutonAfficher").setAttribute("class", "button buttonLoad");
+            document.getElementById("graphique_img").style.display = 'none';
+            document.getElementById("loading_container").style.display = 'block';
 
             // Si les valeurs sont correctes : on récupère les variables et on affiche le graphique
             var myForm = document.forms["formulaire"]
                 //var nom_station = myForm["select_station"].value;
-            var nom_station = document.getElementById("select_station").value.split(" - ")[0];
+            var nom_station = "";
+            if (document.getElementById('croisement').checked && listStationsChoices[1] != 0) {
+                nom_station = listStationsChoices[0] + "_" + listStationsChoices[1];
+                if (listStationsChoices[2] != 0)
+                    nom_station = nom_station + "_" + listStationsChoices[2];
+            } else {
+                nom_station = document.getElementById("select_station").value.split(" - ")[0];
+            }
+
             var datedeb = myForm["date_debut"].value;
             var heuredeb = myForm["heure_debut"].value;
             var datefin = myForm["date_fin"].value;
@@ -316,19 +379,28 @@
 
             var xhr = new XMLHttpRequest();
             xhr.onload = function() {
-                var data = JSON.parse(this.responseText); // Récupération des données renvoyées par le serveur
-                // Modification de l'adresse de l'image contenue dans la balise <div id="graphique"> :
-                console.log(data[0].nom_image_new)
-                document.getElementById("graphique_img").setAttribute("src", data[0].nom_image_new);
-                document.getElementById("pluvio_min").innerHTML = data[0].mini + ' mm';
-                document.getElementById("pluvio_max").innerHTML = data[0].maxi + ' mm';
-                document.getElementById("pluvio_moyenne").innerHTML = data[0].moyenne + ' mm';
-                document.getElementById("pluvio_ecart_type").innerHTML = data[0].ecart_type;
+                document.getElementById("graphique_img").style.display = 'block';
+                document.getElementById("loading_container").style.display = 'none';
+                if (this.status == 200) {
+                    var data = JSON.parse(this.responseText); // Récupération des données renvoyées par le serveur
+                    // Modification de l'adresse de l'image contenue dans la balise <div id="graphique"> :
+                    //console.log(data[0].nom_image_new)
 
-                document.getElementById("boutonAfficher").disabled = false;
-                document.getElementById("boutonAfficher").value = "Afficher";
-                document.getElementById("boutonAfficher").setAttribute("class", "button buttonShow");
+                    document.getElementById("graphique_img").setAttribute("src", data[0].nom_image_new);
+                    document.getElementById("pluvio_min").innerHTML = data[0].mini + ' mm';
+                    document.getElementById("pluvio_max").innerHTML = data[0].maxi + ' mm';
+                    document.getElementById("pluvio_moyenne").innerHTML = data[0].moyenne + ' mm';
+                    document.getElementById("pluvio_ecart_type").innerHTML = data[0].ecart_type;
+
+                    document.getElementById("boutonAfficher").disabled = false;
+                    document.getElementById("boutonAfficher").value = "Afficher";
+                    document.getElementById("boutonAfficher").setAttribute("class", "button buttonShow");
+                } else {
+                    alert("Un problème inatendu est survenu, veuillez ressayer");
+                    document.getElementById("graphique_img").setAttribute("src", "./img/graphs/1_02_01_2011_00_00_30_10_2016_23_59_6.png");
+                }
             };
+            console.log(nom_station)
             xhr.open('GET', '/date/' + nom_station + '/' +
                 datedeb + '/' +
                 heuredeb + '/' +
@@ -621,5 +693,40 @@
                 return false;
             }
             return true;
+        }
+
+        function check_croisement() {
+            var regions_selected_div = document.getElementById('regions_selected_div');
+            if (document.getElementById('croisement').checked) {
+                regions_selected_div.style.display = 'block'
+            } else {
+                document.getElementById('region_selected_1').style.display = 'none';
+                document.getElementById('region_selected_2').style.display = 'none';
+                document.getElementById('region_selected_3').style.display = 'none';
+                listStationsChoices[0] = 0;
+                listStationsChoices[1] = 0;
+                listStationsChoices[2] = 0;
+                regions_selected_div.style.display = 'none';
+            }
+
+        }
+
+        function manageSelectedItem(valeur_gid) {
+
+            if (document.getElementById('croisement').checked) {
+                if (listStationsChoices[0] == 0) {
+                    listStationsChoices[0] = +valeur_gid
+                    document.getElementById("region_selected_1").innerHTML = stations_names[+valeur_gid - 1];
+                    document.getElementById('region_selected_1').style.display = 'list-item';
+                } else if ((listStationsChoices[1] == 0) && (+valeur_gid != listStationsChoices[0])) {
+                    listStationsChoices[1] = +valeur_gid
+                    document.getElementById("region_selected_2").innerHTML = stations_names[+valeur_gid - 1];
+                    document.getElementById('region_selected_2').style.display = 'list-item';
+                } else if ((+valeur_gid != listStationsChoices[0]) && (+valeur_gid != listStationsChoices[1])) {
+                    listStationsChoices[2] = +valeur_gid
+                    document.getElementById("region_selected_3").innerHTML = stations_names[+valeur_gid - 1];
+                    document.getElementById('region_selected_3').style.display = 'list-item';
+                }
+            }
         }
     </script>
