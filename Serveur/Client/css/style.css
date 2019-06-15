@@ -1,14 +1,14 @@
 /* =========== Body & Arrière-plan =========== */
 
 body {
-    background-color: #f0f0ea;
+    background-color: #ffffff;
     font-family: 'Trebuchet MS';
-    padding: 2em;
-    /* background-image: url(../img/pluie.jpeg); */
+    /* padding: 2em; */
+    /* background-image: url(../img/3.jpeg);
     background-repeat: no-repeat;
     background-position: 0, 0;
-    background-size: cover;
-    height: 1000p;
+    background-size: cover; */
+    /* height: 100em; */
 }
 
 a.delete:hover {
@@ -50,12 +50,12 @@ h1 {
     height: 33.5em;
     padding: 5px;
     margin: 5px;
-    border: 1px black solid;
+    /* border: 1px black solid; */
 }
 
 #desc_station {
     width: 36em;
-    border: 1px black solid;
+    /* border: 1px black solid; */
     padding: 3px;
     float: right;
     margin-top: 1em;
@@ -68,7 +68,7 @@ h1 {
 #regions_selected_div {
     width: 18em;
     height: 8em;
-    border: 1px black solid;
+    /* border: 1px black solid; */
     margin: auto;
 }
 
@@ -121,14 +121,14 @@ h1 {
 }
 
 #parms_graphs {
-    border: 1px red solid;
+    /* border: 1px red solid; */
     margin: auto;
     margin-top: 1em;
     width: 63em;
 }
 
 #parms_graphs_button {
-    border: 1px red solid;
+    /* border: 1px red solid; */
     margin: auto;
     margin-top: 1em;
     width: 41em;
@@ -147,7 +147,7 @@ h1 {
     */
     margin: auto;
     background-color: white;
-    border: 1px black solid;
+    /* border: 1px black solid; */
     border-radius: 3px/3px;
     box-shadow: 3px 3px 5px black;
     padding-top: 40px;
@@ -160,14 +160,14 @@ h1 {
 #graphedescription {
     width: 100%;
     padding: 1em;
-    border: 1px green solid;
+    /* border: 1px green solid; */
     height: 35em;
 }
 
 #graphe_infos {
     background-color: rgba(0, 0, 0, 0.15);
     font: Lucida Sans Unicode;
-    border: 1px black solid;
+    /* border: 1px black solid; */
     border-radius: 3px/3px;
     box-shadow: 3px 3px 5px black;
     padding: 4px;
@@ -185,7 +185,7 @@ h1 {
     margin: 1em;
     width: 56em;
     height: 32em;
-    border: 1px black solid;
+    /* border: 1px black solid; */
     float: left;
 }
 
@@ -393,4 +393,28 @@ footer {
     /* align-self: center; */
     /* float: right; */
     text-align: center;
+}
+
+._error {
+    background-color: rgb(255, 213, 213);
+    border-radius: 3px;
+    display: none;
+    /* width: 50em; */
+    padding: 1px;
+    margin: 2px;
+    margin-right: 10em;
+    margin-left: 10em;
+    border: solid 1px red;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    -ms-border-radius: 3px;
+    -o-border-radius: 3px;
+    text-align: center;
+}
+
+#title_div {
+    height: 5em;
+    /* padding-bottom: 1em; */
+    margin-bottom: 1em;
+    /* border: solid 1px red; */
 }

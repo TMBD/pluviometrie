@@ -2,10 +2,15 @@
     <html>
 
     <head>
+        <meta charset="utf-8">
         <title>Pluviométrie du Grand Lyon</title>
         <link rel="stylesheet" type="text/css" href="css/style.css" />
         <link rel="stylesheet" type="text/css" href="css/leaflet.css" />
         <link rel="stylesheet" type="text/css" href="css/loading.css" />
+
+
+
+
 
         <link rel="stylesheet" type="text/css" href="css/footer.css" />
         <!-- <link rel="stylesheet" type="text/css" href="css/bootstrap-3.3.7-dist/css/bootstrap.css" /> -->
@@ -13,12 +18,24 @@
         <script src="css/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
 
 
+        <script src="js/jquery-ui-1.12.1/jquery-ui.js"></script>
+        <link rel="stylesheet" type="text/css" href="js/jquery-ui-1.12.1/jquery-ui.css" />
+        <!-- 
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+        <link rel="stylesheet" href="/resources/demos/style.css">
+        <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script> -->
+
+
+
         <script type="text/javascript" src="js/leaflet.js"></script>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     </head>
 
     <body onload="load_data();">
-        <h1>Pluviométrie du Grand Lyon</h1>
+        <div id="title_div">
+            <h1 id="titre"></h1>
+        </div>
         <div id="container">
             <div id="map_desc_station">
                 <div id="map">
@@ -56,6 +73,10 @@
             </div>
             <div id="parms_graphs_container">
                 <div id="parms_graphs">
+                    <div id="parms_div_error" class="_error">
+                        blablablablablablaa
+
+                    </div>
                     <form name="formulaire">
                         <fieldset id="field_debut">
                             <legend class="h3">DATE DE DEBUT :</legend>
@@ -211,6 +232,7 @@
         document.getElementById('region_selected_1').style.display = 'none';
         document.getElementById('region_selected_2').style.display = 'none';
         document.getElementById('region_selected_3').style.display = 'none';
+        //$("#parms_div_error").hide();
         // document.getElementById("graphique_img").style.display = 'none';
         // document.getElementById("loading_container").style.display = 'block';
         // Création d'une carte dans la balise <div id="map">, positionne la vue sur Lyon et définit le niveau de zoom
@@ -229,6 +251,7 @@
         var listStationsChoices = [0, 0, 0];
 
         function load_data() {
+            animTitle();
             var xhr = new XMLHttpRequest();
 
             xhr.onload = function() { // fonction callback
@@ -283,7 +306,9 @@
                     selecteur.setAttribute("onclick", "SelectionStationE(event);"); // Ajout d'un évènement (clic sur option)
 
                 } else {
-                    alert("Un problème inatendu est survenu, veuillez ressayer");
+                    //alert("Un problème inatendu est survenu, veuillez ressayer");
+
+                    displayError("Un problème inatendu est survenu, veuillez ressayer", "parms_div_error");
                 }
             };
             //Envoi de la requete XHR
@@ -396,7 +421,8 @@
                     document.getElementById("boutonAfficher").value = "Afficher";
                     document.getElementById("boutonAfficher").setAttribute("class", "button buttonShow");
                 } else {
-                    alert("Un problème inatendu est survenu, veuillez ressayer");
+                    //alert("Un problème inatendu est survenu, veuillez ressayer");
+                    displayError("Un problème inatendu est survenu, veuillez ressayer", "parms_div_error");
                     document.getElementById("graphique_img").setAttribute("src", "./img/graphs/1_02_01_2011_00_00_30_10_2016_23_59_6.png");
                 }
             };
@@ -430,14 +456,18 @@
 
         function VerificationFormulaire() {
             if (!VerificationOrdre()) {
-                alert("La date de début est postérieure à la date de fin");
-            }
-            if (!VerificationLimitesDates()) {
-                alert("Nous n'avons pas de données recouvrant l'intégralité de cette période.\nVeuillez choisir des dates comprises entre le 02-01-2011 et le 30-10-2016");
-            }
+                //alert("La date de début est postérieure à la date de fin");
+                displayError("La date de début est postérieure à la date de fin", "parms_div_error");
+            } else if (!VerificationLimitesDates()) {
+                //alert("Nous n'avons pas de données recouvrant l'intégralité de cette période.\nVeuillez choisir des dates comprises entre le 02-01-2011 et le 30-10-2016");
 
-            if (!VerificationDiffPas()) {
-                alert("Le pas de temps est supérieur à la différence entre la date de fin et la date de début");
+                displayError("Nous n'avons pas de données recouvrant l'intégralité de cette période.</br>Veuillez choisir des dates comprises entre le 02-01-2011 et le 30-10-2016", "parms_div_error");
+            } else if (!VerificationDiffPas()) {
+                //var myForm = document.forms["formulaire"];
+                var pastxt = document.forms["formulaire"]["valeur_pas"].value;
+                if (isNaN(pastxt)) displayError("Le pas de temps doit être un entier !", "parms_div_error");
+                //alert("Le pas de temps est supérieur à la différence entre la date de fin et la date de début");
+                else displayError("Le pas de temps est supérieur à la différence entre la date de fin et la date de début", "parms_div_error");
             }
 
             return (VerificationDateDebut() &&
@@ -669,6 +699,7 @@
             var pastxt = myForm["valeur_pas"].value; // Récupération de la valeur du champ
             var unite = myForm["unite_pas"].value;
 
+            if (isNaN(pastxt)) return false
             pas = +pastxt * +unite;
             heure1 = heuredebtxt.split(':');
             heure2 = heurefintxt.split(':');
@@ -728,5 +759,104 @@
                     document.getElementById('region_selected_3').style.display = 'list-item';
                 }
             }
+        }
+
+
+        function displayError(message, element) {
+            document.getElementById(element).innerHTML = message;
+            $("#" + element).slideDown(1000).delay(5000).fadeOut(2000);
+            //$("div.alert").show("slow").delay(4000).hide("slow");
+            return false;
+        };
+
+
+
+        ///////////////////////////////////////////////////////////////////////////////////////////::
+
+        $(function() {
+            var dateFormat = "dd-mm-yy",
+                from = $("#date_debut")
+                .datepicker({
+                    defaultDate: "+1w",
+                    changeMonth: true,
+                    numberOfMonths: 1,
+                    changeYear: true,
+                    dateFormat: "dd-mm-yy",
+                    minDate: new Date(2011, 0, 2),
+                    maxDate: new Date(2016, 9, 30),
+                    showAnim: "drop",
+                })
+                .on("change", function() {
+                    startDate = getDate(this)
+                    to.datepicker("option", "minDate", getDate(this));
+                    // $("#date_fin").val(startDate);
+                    // $("#date_fin").datepicker("option", {
+                    //     minDate: startDate
+                    // })
+                    //var dFormat = $(this).datepicker("option", "dateFormat");
+                    console.log(startDate)
+                }),
+                to = $("#date_fin")
+                .datepicker({
+                    defaultDate: "+1w",
+                    changeMonth: true,
+                    numberOfMonths: 1,
+                    changeYear: true,
+                    dateFormat: "dd-mm-yy",
+                    // minDate: new Date(2011, 0, 2),
+                    maxDate: new Date(2016, 9, 30),
+                    showAnim: "drop",
+                })
+                .on("change", function() {
+                    from.datepicker("option", "maxDate", getDate(this));
+                });
+
+            function getDate(element) {
+                var date;
+                try {
+                    date = $.datepicker.parseDate(dateFormat, element.value);
+                    //console.log(element.value);
+                    //date = $.datepicker.parseDate(dateFormat, element.value);
+                } catch (error) {
+                    date = null;
+                }
+
+                return date;
+            }
+        });
+
+
+        hTitle = document.getElementById("titre");
+        var titleArray = Array.from("Pluviométrie du Grand Lyon");
+        letterPosition = 0;
+
+        var smallDisplayIntervalle = null;
+        var displayIntervalle = setInterval(animTitle, titleArray.length * 100 + 1000 + 5000 + 1000);
+
+        function animTitle() {
+            hTitle.innerHTML = " ";
+            $("#titre").show();
+            smallDisplayIntervalle = setInterval(smallAnimTitle, 100);
+            $("#titre").delay(titleArray.length * 100 + 1000).fadeOut(5000);
+        }
+
+
+
+        function smallAnimTitle() {
+            hTitle.innerHTML += titleArray[letterPosition];
+            letterPosition++;
+            if (letterPosition >= titleArray.length) {
+                clearInterval(smallDisplayIntervalle);
+                letterPosition = 0;
+            }
+
+            //console.log(titleArray)
+            // for (i = 0; i < titleArray.length; i++) {
+            //     setTimeout(function(i) {
+            //         console.log(i)
+            //         hTitle.innerHTML += titleArray[i];
+            //     }, 1000);
+            // }
+
         }
     </script>

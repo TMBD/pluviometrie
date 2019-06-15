@@ -10,8 +10,8 @@ import http.server
 import socketserver
 from urllib.parse import urlparse, parse_qs
 import json
-import sqlite3
-import numpy as np
+
+#import numpy as np
 
 from matplotlib import pyplot as plt
 from matplotlib import dates
@@ -20,6 +20,7 @@ from math import floor, ceil, sqrt
 from statistics import mean, variance
 import os
 from decimal import Decimal
+import sqlite3
 
 GRAPH_IMAGE_DIR = 'Client/img/graphs/'
 GRAPH_IMAGE_DIR_CLIENT = 'img/graphs/'
@@ -477,5 +478,5 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler) :
 
 
 # Instanciation et lancement du serveur :
-httpd = socketserver.TCPServer(("", 8083), RequestHandler)
+httpd = socketserver.TCPServer(("", 8081), RequestHandler)
 httpd.serve_forever()
