@@ -1,4 +1,11 @@
-
+document.getElementById("loading_container").style.display = 'none';
+document.getElementById("regions_selected_div").style.display = 'none';
+document.getElementById('region_selected_1').style.display = 'none';
+document.getElementById('region_selected_2').style.display = 'none';
+document.getElementById('region_selected_3').style.display = 'none';
+//$("#parms_div_error").hide();
+// document.getElementById("graphique_img").style.display = 'none';
+// document.getElementById("loading_container").style.display = 'block';
 // Création d'une carte dans la balise <div id="map">, positionne la vue sur Lyon et définit le niveau de zoom
 var map = L.map('map').setView([45.775, 4.83], 10);
 
@@ -11,64 +18,76 @@ var markers = new Array(); // Création de la liste des marqueurs positionnant l
 
 var selecteur = document.getElementById("select_station"); // Récupération de l'emplacement de la liste déroulante
 
+var stations_names = [];
+var listStationsChoices = [0, 0, 0];
+
 function load_data() {
+    animTitle();
     var xhr = new XMLHttpRequest();
 
     xhr.onload = function() { // fonction callback
-        // Récupération des données renvoyées par le serveur
-        var data = JSON.parse(this.responseText);
+        if (this.status == 200) {
+            // Récupération des données renvoyées par le serveur
+            var data = JSON.parse(this.responseText);
 
-        //var selecteur = document.getElementById("select_station"); // Récupération de l'emplacement de la liste déroulante
-        // Boucle parcourant les enregistrements renvoyés par le serveur
-        for (n = 0; n < data.length; n++) {
-
-            // Texte descriptif de la station
-            var texte = '<h2> <b>Station : ' + data[n].nom + '</b> </h2>' +
-                '<b>Adresse :</b> ' + data[n].adresse +
-                '<br><b>Propriétaires :</b> ' + data[n].proprietaires +
-                '<br><b>Date de mise en service :</b> ' + data[n].dateMS +
-                '<br><b>Date de mise hors service :</b> ' + data[n].dateHS +
-                '<br><b>Altitude :</b> ' + data[n].zsol + ' m' +
-                '<br><b>Appartient au Grand Lyon ? :</b> ' + data[n].appartenance +
-                '<br><b>Identifiant : </b>' + data[n].identifiant;
-
-            // Création d'un marqueur aux coordonnées données et ajout d'un titre (s'affichant en survolant le marqueur)
-            var LamMarker = new L.marker([data[n].longitude, data[n].latitude], {
-                title: 'Station ' + data[n].nom
-            });
-
-            // Ajout au marqueur d'une popup, d'un évenement (clic sur marqueur) et d'un paramètre
-            LamMarker.bindPopup('<h2> <b>Station : ' + data[n].nom + '</b> </h2>' +
+            //var selecteur = document.getElementById("select_station"); // Récupération de l'emplacement de la liste déroulante
+            // Boucle parcourant les enregistrements renvoyés par le serveur
+            for (n = 0; n < data.length; n++) {
+                stations_names.push(data[n].nom);
+                // Texte descriptif de la station
+                var texte = '<h2> <b>Station : ' + data[n].nom + '</b> </h2>' +
                     '<b>Adresse :</b> ' + data[n].adresse +
                     '<br><b>Propriétaires :</b> ' + data[n].proprietaires +
-                    '<br><b>Identifiant : </b>' + data[n].identifiant)
-                .addEventListener('click', OnMarkerClick)
-                .infos = [data[n].gid, data[n].identifiant, texte]; // propriété personnalisée ajouté au marqueur
+                    '<br><b>Date de mise en service :</b> ' + data[n].dateMS +
+                    '<br><b>Date de mise hors service :</b> ' + data[n].dateHS +
+                    '<br><b>Altitude :</b> ' + data[n].zsol + ' m' +
+                    '<br><b>Appartient au Grand Lyon ? :</b> ' + data[n].appartenance +
+                    '<br><b>Identifiant : </b>' + data[n].identifiant;
 
-            markers.push(LamMarker); // Ajout du marqueur à la liste
-            map.addLayer(markers[n]); // Création d'un layer contenant le marqueur
+                // Création d'un marqueur aux coordonnées données et ajout d'un titre (s'affichant en survolant le marqueur)
+                var LamMarker = new L.marker([data[n].longitude, data[n].latitude], {
+                    title: 'Station ' + data[n].nom
+                });
 
-            // Par défaut, sélectionne la première station dans la liste déroulante des stations (cf. formulaire)
-            if (data[n].gid == 1) {
-                SelectionStation(data[n].gid);
+                // Ajout au marqueur d'une popup, d'un évenement (clic sur marqueur) et d'un paramètre
+                LamMarker.bindPopup('<h2> <b>Station : ' + data[n].nom + '</b> </h2>' +
+                        '<b>Adresse :</b> ' + data[n].adresse +
+                        '<br><b>Propriétaires :</b> ' + data[n].proprietaires +
+                        '<br><b>Identifiant : </b>' + data[n].identifiant)
+                    .addEventListener('click', OnMarkerClick)
+                    .infos = [data[n].gid, data[n].identifiant, texte]; // propriété personnalisée ajouté au marqueur
+
+                markers.push(LamMarker); // Ajout du marqueur à la liste
+                map.addLayer(markers[n]); // Création d'un layer contenant le marqueur
+
+                // Par défaut, sélectionne la première station dans la liste déroulante des stations (cf. formulaire)
+                if (data[n].gid == 1) {
+                    SelectionStation(data[n].gid);
+                }
+
+                // Ajout des stations à la liste déroulante des stations (cf. formulaire)
+                //var selecteur = document.getElementById("select_station"); // Récupération de l'emplacement de la liste déroulante
+                var option = document.createElement("option"); // Création d'une nouvelle option
+                option.text = data[n].gid + ' - ' + data[n].nom; // Ajout d'un texte à l'option (ex : "1 - SAINT GERMAIN")
+                option.setAttribute("onclick", "SelectionStation(" + data[n].gid + ");"); // Ajout d'un évènement (clic sur option)
+                selecteur.add(option, selecteur[-1]); // Ajout de l'option à la suite des précédentes
+
             }
 
-            // Ajout des stations à la liste déroulante des stations (cf. formulaire)
-            //var selecteur = document.getElementById("select_station"); // Récupération de l'emplacement de la liste déroulante
-            var option = document.createElement("option"); // Création d'une nouvelle option
-            option.text = data[n].gid + ' - ' + data[n].nom; // Ajout d'un texte à l'option (ex : "1 - SAINT GERMAIN")
-            option.setAttribute("onclick", "SelectionStation(" + data[n].gid + ");"); // Ajout d'un évènement (clic sur option)
-            selecteur.add(option, selecteur[-1]); // Ajout de l'option à la suite des précédentes
+            selecteur.setAttribute("onclick", "SelectionStationE(event);"); // Ajout d'un évènement (clic sur option)
 
+        } else {
+            //alert("Un problème inatendu est survenu, veuillez ressayer");
+
+            displayError("Un problème inatendu est survenu, veuillez ressayer", "parms_div_error");
         }
-
-        selecteur.setAttribute("onclick", "SelectionStationE(event);"); // Ajout d'un évènement (clic sur option)
     };
     //Envoi de la requete XHR
     xhr.open('GET', '/location', true);
     xhr.send();
 }
 
+//console.log(stations_names);
 
 function SelectionStation(valeur_gid) {
     // Parcours de la liste des marqueurs
@@ -95,6 +114,8 @@ function SelectionStationE(e) {
     }
     // Remplacement du contenu de la balise <p id="description"> par le contenu de la popup
     description.innerHTML = markers[i].infos[2];
+    console.log(valeur_gid);
+    manageSelectedItem(valeur_gid);
 }
 
 
@@ -105,6 +126,8 @@ function OnMarkerClick(e) {
     document.getElementById("select_station").options.selectedIndex = e.target.infos[0] - 1;
 
     description.innerHTML = e.target.infos[2];
+    console.log(e.target.infos[0]);
+    manageSelectedItem(e.target.infos[0]);
 }
 
 ////////////////////// CALCULE DES GRAPHS ///////////////////////////////
@@ -126,11 +149,21 @@ function AfficherGraphe() {
     document.getElementById("boutonAfficher").disabled = true;
     document.getElementById("boutonAfficher").value = "Chargement ...";
     document.getElementById("boutonAfficher").setAttribute("class", "button buttonLoad");
+    document.getElementById("graphique_img").style.display = 'none';
+    document.getElementById("loading_container").style.display = 'block';
 
     // Si les valeurs sont correctes : on récupère les variables et on affiche le graphique
     var myForm = document.forms["formulaire"]
         //var nom_station = myForm["select_station"].value;
-    var nom_station = document.getElementById("select_station").value.split(" - ")[0];
+    var nom_station = "";
+    if (document.getElementById('croisement').checked && listStationsChoices[1] != 0) {
+        nom_station = listStationsChoices[0] + "_" + listStationsChoices[1];
+        if (listStationsChoices[2] != 0)
+            nom_station = nom_station + "_" + listStationsChoices[2];
+    } else {
+        nom_station = document.getElementById("select_station").value.split(" - ")[0];
+    }
+
     var datedeb = myForm["date_debut"].value;
     var heuredeb = myForm["heure_debut"].value;
     var datefin = myForm["date_fin"].value;
@@ -142,19 +175,29 @@ function AfficherGraphe() {
 
     var xhr = new XMLHttpRequest();
     xhr.onload = function() {
-        var data = JSON.parse(this.responseText); // Récupération des données renvoyées par le serveur
-        // Modification de l'adresse de l'image contenue dans la balise <div id="graphique"> :
-        console.log(data[0].nom_image_new)
-        document.getElementById("graphique_img").setAttribute("src", data[0].nom_image_new);
-        document.getElementById("pluvio_min").innerHTML = data[0].mini + ' mm';
-        document.getElementById("pluvio_max").innerHTML = data[0].maxi + ' mm';
-        document.getElementById("pluvio_moyenne").innerHTML = data[0].moyenne + ' mm';
-        document.getElementById("pluvio_ecart_type").innerHTML = data[0].ecart_type;
+        document.getElementById("graphique_img").style.display = 'block';
+        document.getElementById("loading_container").style.display = 'none';
+        if (this.status == 200) {
+            var data = JSON.parse(this.responseText); // Récupération des données renvoyées par le serveur
+            // Modification de l'adresse de l'image contenue dans la balise <div id="graphique"> :
+            //console.log(data[0].nom_image_new)
 
-        document.getElementById("boutonAfficher").disabled = false;
-        document.getElementById("boutonAfficher").value = "Afficher";
-        document.getElementById("boutonAfficher").setAttribute("class", "button buttonShow");
+            document.getElementById("graphique_img").setAttribute("src", data[0].nom_image_new);
+            document.getElementById("pluvio_min").innerHTML = data[0].mini + ' mm';
+            document.getElementById("pluvio_max").innerHTML = data[0].maxi + ' mm';
+            document.getElementById("pluvio_moyenne").innerHTML = data[0].moyenne + ' mm';
+            document.getElementById("pluvio_ecart_type").innerHTML = data[0].ecart_type;
+
+            document.getElementById("boutonAfficher").disabled = false;
+            document.getElementById("boutonAfficher").value = "Afficher";
+            document.getElementById("boutonAfficher").setAttribute("class", "button buttonShow");
+        } else {
+            //alert("Un problème inatendu est survenu, veuillez ressayer");
+            displayError("Un problème inatendu est survenu, veuillez ressayer", "parms_div_error");
+            document.getElementById("graphique_img").setAttribute("src", "./img/graphs/1_02_01_2011_00_00_30_10_2016_23_59_6.png");
+        }
     };
+    console.log(nom_station)
     xhr.open('GET', '/date/' + nom_station + '/' +
         datedeb + '/' +
         heuredeb + '/' +
@@ -184,14 +227,18 @@ var validerOnKeyUpAttached = false;
 
 function VerificationFormulaire() {
     if (!VerificationOrdre()) {
-        alert("La date de début est postérieure à la date de fin");
-    }
-    if (!VerificationLimitesDates()) {
-        alert("Nous n'avons pas de données recouvrant l'intégralité de cette période.\nVeuillez choisir des dates comprises entre le 02-01-2011 et le 30-10-2016");
-    }
+        //alert("La date de début est postérieure à la date de fin");
+        displayError("La date de début est postérieure à la date de fin", "parms_div_error");
+    } else if (!VerificationLimitesDates()) {
+        //alert("Nous n'avons pas de données recouvrant l'intégralité de cette période.\nVeuillez choisir des dates comprises entre le 02-01-2011 et le 30-10-2016");
 
-    if (!VerificationDiffPas()) {
-        alert("Le pas de temps est supérieur à la différence entre la date de fin et la date de début");
+        displayError("Nous n'avons pas de données recouvrant l'intégralité de cette période.</br>Veuillez choisir des dates comprises entre le 02-01-2011 et le 30-10-2016", "parms_div_error");
+    } else if (!VerificationDiffPas()) {
+        //var myForm = document.forms["formulaire"];
+        var pastxt = document.forms["formulaire"]["valeur_pas"].value;
+        if (isNaN(pastxt)) displayError("Le pas de temps doit être un entier !", "parms_div_error");
+        //alert("Le pas de temps est supérieur à la différence entre la date de fin et la date de début");
+        else displayError("Le pas de temps est supérieur à la différence entre la date de fin et la date de début", "parms_div_error");
     }
 
     return (VerificationDateDebut() &&
@@ -423,6 +470,7 @@ function VerificationDiffPas() {
     var pastxt = myForm["valeur_pas"].value; // Récupération de la valeur du champ
     var unite = myForm["unite_pas"].value;
 
+    if (isNaN(pastxt)) return false
     pas = +pastxt * +unite;
     heure1 = heuredebtxt.split(':');
     heure2 = heurefintxt.split(':');
@@ -447,4 +495,138 @@ function VerificationLimitesDates() {
         return false;
     }
     return true;
+}
+
+function check_croisement() {
+    var regions_selected_div = document.getElementById('regions_selected_div');
+    if (document.getElementById('croisement').checked) {
+        regions_selected_div.style.display = 'block'
+    } else {
+        document.getElementById('region_selected_1').style.display = 'none';
+        document.getElementById('region_selected_2').style.display = 'none';
+        document.getElementById('region_selected_3').style.display = 'none';
+        listStationsChoices[0] = 0;
+        listStationsChoices[1] = 0;
+        listStationsChoices[2] = 0;
+        regions_selected_div.style.display = 'none';
+    }
+
+}
+
+function manageSelectedItem(valeur_gid) {
+
+    if (document.getElementById('croisement').checked) {
+        if (listStationsChoices[0] == 0) {
+            listStationsChoices[0] = +valeur_gid
+            document.getElementById("region_selected_1").innerHTML = stations_names[+valeur_gid - 1];
+            document.getElementById('region_selected_1').style.display = 'list-item';
+        } else if ((listStationsChoices[1] == 0) && (+valeur_gid != listStationsChoices[0])) {
+            listStationsChoices[1] = +valeur_gid
+            document.getElementById("region_selected_2").innerHTML = stations_names[+valeur_gid - 1];
+            document.getElementById('region_selected_2').style.display = 'list-item';
+        } else if ((+valeur_gid != listStationsChoices[0]) && (+valeur_gid != listStationsChoices[1])) {
+            listStationsChoices[2] = +valeur_gid
+            document.getElementById("region_selected_3").innerHTML = stations_names[+valeur_gid - 1];
+            document.getElementById('region_selected_3').style.display = 'list-item';
+        }
+    }
+}
+
+
+function displayError(message, element) {
+    document.getElementById(element).innerHTML = message;
+    $("#" + element).slideDown(1000).delay(5000).fadeOut(2000);
+    //$("div.alert").show("slow").delay(4000).hide("slow");
+    return false;
+};
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////::
+
+$(function() {
+    var dateFormat = "dd-mm-yy",
+        from = $("#date_debut")
+        .datepicker({
+            defaultDate: "+1w",
+            changeMonth: true,
+            numberOfMonths: 1,
+            changeYear: true,
+            dateFormat: "dd-mm-yy",
+            minDate: new Date(2011, 0, 2),
+            maxDate: new Date(2016, 9, 30),
+            showAnim: "drop",
+        })
+        .on("change", function() {
+            startDate = getDate(this)
+            to.datepicker("option", "minDate", getDate(this));
+            // $("#date_fin").val(startDate);
+            // $("#date_fin").datepicker("option", {
+            //     minDate: startDate
+            // })
+            //var dFormat = $(this).datepicker("option", "dateFormat");
+            console.log(startDate)
+        }),
+        to = $("#date_fin")
+        .datepicker({
+            defaultDate: "+1w",
+            changeMonth: true,
+            numberOfMonths: 1,
+            changeYear: true,
+            dateFormat: "dd-mm-yy",
+            // minDate: new Date(2011, 0, 2),
+            maxDate: new Date(2016, 9, 30),
+            showAnim: "drop",
+        })
+        .on("change", function() {
+            from.datepicker("option", "maxDate", getDate(this));
+        });
+
+    function getDate(element) {
+        var date;
+        try {
+            date = $.datepicker.parseDate(dateFormat, element.value);
+            //console.log(element.value);
+            //date = $.datepicker.parseDate(dateFormat, element.value);
+        } catch (error) {
+            date = null;
+        }
+
+        return date;
+    }
+});
+
+
+hTitle = document.getElementById("titre");
+var titleArray = Array.from("Pluviométrie du Grand Lyon");
+letterPosition = 0;
+
+var smallDisplayIntervalle = null;
+var displayIntervalle = setInterval(animTitle, titleArray.length * 100 + 1000 + 5000 + 1000);
+
+function animTitle() {
+    hTitle.innerHTML = " ";
+    $("#titre").show();
+    smallDisplayIntervalle = setInterval(smallAnimTitle, 100);
+    $("#titre").delay(titleArray.length * 100 + 1000).fadeOut(5000);
+}
+
+
+
+function smallAnimTitle() {
+    hTitle.innerHTML += titleArray[letterPosition];
+    letterPosition++;
+    if (letterPosition >= titleArray.length) {
+        clearInterval(smallDisplayIntervalle);
+        letterPosition = 0;
+    }
+
+    //console.log(titleArray)
+    // for (i = 0; i < titleArray.length; i++) {
+    //     setTimeout(function(i) {
+    //         console.log(i)
+    //         hTitle.innerHTML += titleArray[i];
+    //     }, 1000);
+    // }
+
 }
