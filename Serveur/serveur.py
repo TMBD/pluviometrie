@@ -309,6 +309,7 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler) :
                 # ===== Tracé du graphe  ==============================================================
 
                 plt.grid(color='#888888', linestyle=':')  
+                #plt.grid(color='#888888', linestyle=':')  
                 
                 plt.plot(fds_tronc, Y_tronc)
                 

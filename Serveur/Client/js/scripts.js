@@ -126,7 +126,7 @@ function OnMarkerClick(e) {
     document.getElementById("select_station").options.selectedIndex = e.target.infos[0] - 1;
 
     description.innerHTML = e.target.infos[2];
-    console.log(e.target.infos[0]);
+    //console.log(e.target.infos[0]);
     manageSelectedItem(e.target.infos[0]);
 }
 
@@ -174,40 +174,85 @@ function AfficherGraphe() {
     var pas_minutes = +pas * +unite;
 
     var xhr = new XMLHttpRequest();
-    xhr.onload = function() {
+    try{
+
+        //Lorsque le status de la requete change
+        xhr.onreadystatechange = function() {
+            console.log("onreadystatechange ");
+            // document.getElementById("graphique_img").style.display = 'block';
+            // document.getElementById("loading_container").style.display = 'none';
+            console.log("this.status = "+this.status);
+            xhr.onerror = function() {
+                console.log("juste onerror ");
+                    document.getElementById("graphique_img").style.display = 'block';
+                    document.getElementById("loading_container").style.display = 'none';
+                    displayError("Un problème inatendu est survenu, veuillez ressayer", "parms_div_error");
+                    document.getElementById("graphique_img").setAttribute("src", "./img/graphs/1_02_01_2011_00_00_30_10_2016_23_59_6.png");
+                    document.getElementById("boutonAfficher").disabled = false;
+                    document.getElementById("boutonAfficher").value = "Afficher";
+                    document.getElementById("boutonAfficher").setAttribute("class", "button buttonShow");
+                    console.log("after onerror ");
+            }
+            xhr.onload = function() {
+                console.log("onload ");
+                if (this.status === 200) {
+                    
+                    console.log("this.status === 200");
+                    document.getElementById("graphique_img").style.display = 'block';
+                    document.getElementById("loading_container").style.display = 'none';
+                    var data = JSON.parse(this.responseText); // Récupération des données renvoyées par le serveur
+                    // Modification de l'adresse de l'image contenue dans la balise <div id="graphique"> :
+                    //console.log(data[0].nom_image_new)
+        
+                    document.getElementById("graphique_img").setAttribute("src", data[0].nom_image_new);
+                    document.getElementById("pluvio_min").innerHTML = data[0].mini + ' mm';
+                    document.getElementById("pluvio_max").innerHTML = data[0].maxi + ' mm';
+                    document.getElementById("pluvio_moyenne").innerHTML = data[0].moyenne + ' mm';
+                    document.getElementById("pluvio_ecart_type").innerHTML = data[0].ecart_type;
+        
+                    document.getElementById("boutonAfficher").disabled = false;
+                    document.getElementById("boutonAfficher").value = "Afficher";
+                    document.getElementById("boutonAfficher").setAttribute("class", "button buttonShow");
+                    
+                } else {
+                    console.log("this.status != 200");
+                    //alert("Un problème inatendu est survenu, veuillez ressayer");
+                    document.getElementById("graphique_img").style.display = 'block';
+                    document.getElementById("loading_container").style.display = 'none';
+                    displayError("Un problème inatendu est survenu, veuillez ressayer", "parms_div_error");
+                    document.getElementById("graphique_img").setAttribute("src", "./img/graphs/1_02_01_2011_00_00_30_10_2016_23_59_6.png");
+                    document.getElementById("boutonAfficher").disabled = false;
+                    document.getElementById("boutonAfficher").value = "Afficher";
+                    document.getElementById("boutonAfficher").setAttribute("class", "button buttonShow");
+                }
+            }
+        };
+        //console.log(nom_station)
+        xhr.open('GET', '/date/' + nom_station + '/' +
+            datedeb + '/' +
+            heuredeb + '/' +
+            datefin + '/' +
+            heurefin + '/' +
+            pas_minutes, true);
+        console.log('before send');
+        xhr.send();
+        console.log('after send');
+
+
+    }catch(e){
+        console.log('catch', e);
         document.getElementById("graphique_img").style.display = 'block';
         document.getElementById("loading_container").style.display = 'none';
-        if (this.status == 200) {
-            var data = JSON.parse(this.responseText); // Récupération des données renvoyées par le serveur
-            // Modification de l'adresse de l'image contenue dans la balise <div id="graphique"> :
-            //console.log(data[0].nom_image_new)
-
-            document.getElementById("graphique_img").setAttribute("src", data[0].nom_image_new);
-            document.getElementById("pluvio_min").innerHTML = data[0].mini + ' mm';
-            document.getElementById("pluvio_max").innerHTML = data[0].maxi + ' mm';
-            document.getElementById("pluvio_moyenne").innerHTML = data[0].moyenne + ' mm';
-            document.getElementById("pluvio_ecart_type").innerHTML = data[0].ecart_type;
-
-            document.getElementById("boutonAfficher").disabled = false;
-            document.getElementById("boutonAfficher").value = "Afficher";
-            document.getElementById("boutonAfficher").setAttribute("class", "button buttonShow");
-        } else {
-            //alert("Un problème inatendu est survenu, veuillez ressayer");
-            displayError("Un problème inatendu est survenu, veuillez ressayer", "parms_div_error");
-            document.getElementById("graphique_img").setAttribute("src", "./img/graphs/1_02_01_2011_00_00_30_10_2016_23_59_6.png");
-        }
-    };
-    console.log(nom_station)
-    xhr.open('GET', '/date/' + nom_station + '/' +
-        datedeb + '/' +
-        heuredeb + '/' +
-        datefin + '/' +
-        heurefin + '/' +
-        pas_minutes, true);
-    xhr.send();
+        document.getElementById("boutonAfficher").disabled = false;
+        document.getElementById("boutonAfficher").value = "Afficher";
+        document.getElementById("boutonAfficher").setAttribute("class", "button buttonShow");
+        displayError("Un problème inatendu est survenu, veuillez ressayer", "parms_div_error");
+        document.getElementById("graphique_img").setAttribute("src", "./img/graphs/1_02_01_2011_00_00_30_10_2016_23_59_6.png");
+    }
+    
 }
 
-
+//Remet à jour les valeur du formulaire
 function ResetFormulaire() {
     document.getElementById("date_debut").value = "02-01-2011"
     document.getElementById("date_debut").setAttribute("class", "caseDate");
@@ -600,15 +645,24 @@ $(function() {
 hTitle = document.getElementById("titre");
 var titleArray = Array.from("Pluviométrie du Grand Lyon");
 letterPosition = 0;
+numberOfAnimation = 2;
 
 var smallDisplayIntervalle = null;
 var displayIntervalle = setInterval(animTitle, titleArray.length * 100 + 1000 + 5000 + 1000);
 
 function animTitle() {
+    //console.log("grand");
     hTitle.innerHTML = " ";
     $("#titre").show();
     smallDisplayIntervalle = setInterval(smallAnimTitle, 100);
-    $("#titre").delay(titleArray.length * 100 + 1000).fadeOut(5000);
+    
+    
+    if(numberOfAnimation>0){
+        $("#titre").delay(titleArray.length * 100 + 1000).fadeOut(5000);
+    //     hTitle.innerHTML = "Pluviométrie du Grand Lyon";
+    //     $("#titre").show();
+    }
+
 }
 
 
@@ -619,8 +673,15 @@ function smallAnimTitle() {
     if (letterPosition >= titleArray.length) {
         clearInterval(smallDisplayIntervalle);
         letterPosition = 0;
+        numberOfAnimation--;
+        if(numberOfAnimation<=0){
+            clearInterval(displayIntervalle);
+            hTitle.innerHTML = "Pluviométrie du Grand Lyon";
+            $("#titre").delay(titleArray.length * 100 + 1000).show(1000);
+            //console.log("interieur");
+        }
     }
-
+    //console.log("petit");
     //console.log(titleArray)
     // for (i = 0; i < titleArray.length; i++) {
     //     setTimeout(function(i) {
